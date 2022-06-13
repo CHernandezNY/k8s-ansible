@@ -1,0 +1,41 @@
+# Install Container Runtime
+- name: Add an apt signing key for Docker
+  apt_key:
+    url: "https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg"
+    state: present
+
+- name: Add apt repository for stable version
+  apt_repository:
+    repo: "deb https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
+    state: present
+
+- name: Install docker-ce
+  apt:
+     name: docker-ce
+     state: present
+     update_cache: true
+  register: apt_result
+  until: apt_result is success
+  retries: 3
+  delay: 1
+
+- name: Install docker-ce-cli
+  apt:
+     name: docker-ce-cli
+     state: present
+     update_cache: true
+
+- name: Install containerd.io
+  apt:
+     name: containerd.io
+     state: present
+     update_cache: true
+
+- name: Delete containerd config.toml
+  file:
+    state: absent
+    path: /etc/containerd/config.toml
+  when: ansible_host == hostvars[groups['controller'][0]]['ansible_host'] | default(groups['controller'][0])
+  notify:
+    - Restart Docker
+

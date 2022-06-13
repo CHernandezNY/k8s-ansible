@@ -1,0 +1,37 @@
+# Install Kubernetes Components 
+
+- name: Add an apt signing key for Kubernetes
+  apt_key:
+   url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+   state: present
+
+- name: Adding apt repository for Kubernetes
+  apt_repository:
+   repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+   state: present
+   filename: kubernetes.list
+
+- name: Install Kubelet
+  apt:
+     name: kubelet
+     state: present
+     update_cache: true
+
+- name: Install Kubeadm
+  apt:
+     name: kubeadm
+     state: present
+     update_cache: true
+
+- name: Start Kubelet
+  service:
+    name: kubelet
+    enabled: yes
+    state: started
+
+# Join worker nodes 
+- name: Join Worker Nodes
+  block: 
+  - name: join cluster as worker
+    shell: "sudo {{ hostvars[groups['controller'][0]].join_worker_command }}"
+

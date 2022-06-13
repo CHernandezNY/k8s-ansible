@@ -1,0 +1,17 @@
+---
+- name: Set detected_distribution 
+  set_fact:
+    detected_distribution: "{{ ansible_facts.lsb.id }}"
+
+- name: Set detected_distribution_major_release
+  set_fact:
+    detected_distribution_major_release: "{{ ansible_facts.lsb.major_release }}"
+
+- name: execute OS related tasks 
+  include_tasks: "{{ oses }}"
+  with_first_found:
+    - "./{{ detected_distribution }}-{{ detected_distribution_major_release }}.yml"
+    - "./{{ detected_distribution }}.yml"
+    - "./default.yml"
+  loop_control:
+    loop_var: oses

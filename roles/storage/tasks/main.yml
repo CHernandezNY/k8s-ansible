@@ -1,0 +1,26 @@
+---
+- name: Create Storage RBAC
+  k8s:
+    state: present            
+    namespace: baselab  
+    src: "{{ playbook_dir }}/k8s_yamls/storage/rbac.yml"
+
+- name: Set up the Deployment yaml file.
+  template:
+    src: "templates/{{ item.template }}"
+    dest: "{{ item.dest }}"
+    mode: 0644
+  with_items:
+    - { template: deployment.j2, dest: "{{ playbook_dir }}/k8s_yamls/storage/deployment.yml" }
+
+- name: Create NFS Storage Deployment 
+  k8s:
+    state: present            
+    namespace: baselab  
+    src: "{{ playbook_dir }}/k8s_yamls/storage/deployment.yml"
+
+- name: Create NFS Storage Class
+  k8s:
+    state: present            
+    namespace: baselab  
+    src: "{{ playbook_dir }}/k8s_yamls/storage/class-retain.yml"

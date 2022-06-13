@@ -1,0 +1,46 @@
+- name: Install NGINX on controlplane load balancer
+  apt:
+     name: nginx
+     state: present
+     update_cache: true
+
+- name: Check if NGINX tcpconf.d directory exists.
+  stat:
+    path: /etc/nginx/tcpconf.d/
+  register: nginx_folder
+
+- name: Echo if directory already existed
+  debug:
+    msg: "The tcpconf.d directory already existed"
+  when: nginx_folder.stat.exists
+
+- name: "Create NGINX tcpconf.d directory if does not exists"
+  file:
+    path: /etc/nginx/tcpconf.d/
+    state: directory
+    mode: 0755
+  when: nginx_folder.stat.exists == false
+
+- name: Add a include line to NGINX conf for tcp stream directory
+  lineinfile:
+    path: /etc/nginx/nginx.conf
+    line: include /etc/nginx/tcpconf.d/*;
+    create: yes
+
+- name: Set up the Kubernetes conf file.
+  template:
+    src: "templates/{{ item.template }}"
+    dest: "{{ item.dest }}"
+    mode: 0644
+  with_items:
+    - { template: kubernetes.j2, dest: /etc/nginx/tcpconf.d/kubernetes.conf }
+  notify:
+    - Restart NGINX
+
+
+- name: Enable and start NGINX
+  service:
+    name: nginx
+    enabled: yes
+    state: started
+

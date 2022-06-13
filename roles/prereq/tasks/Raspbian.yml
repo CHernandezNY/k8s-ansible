@@ -1,0 +1,70 @@
+---
+- name: Activating cgroup support
+  lineinfile:
+    path: /boot/cmdline.txt
+    regexp: '^((?!.*\bcgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory\b).*)$'
+    line: '\1 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory'
+    backrefs: true
+#  notify: reboot
+
+- name: Disable swap
+  shell: >
+    dphys-swapfile swapoff &&
+    dphys-swapfile uninstall &&
+    update-rc.d -f dphys-swapfile remove &&
+    systemctl disable dphys-swapfile.service
+  when: ansible_swaptotal_mb > 0
+
+- name: Install packages that allow apt to be used over HTTPS
+  apt:
+    name: 
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg-agent
+    update_cache: yes
+    state: present
+
+- name: Install iptables
+  apt:
+    name: iptables
+    state: present
+
+- name: Flush iptables before changing to iptables-legacy
+  iptables:
+    flush: true
+  changed_when: false   # iptables flush always returns changed
+
+- name: Ensure iptables tooling does not use the nftables backend
+  alternatives:
+    name: iptables
+    path: /usr/sbin/iptables-legacy
+
+- name: Ensure ip6tables tooling does not use the nftables backend
+  alternatives:
+    name: ip6tables
+    path: /usr/sbin/ip6tables-legacy
+
+- name: Set the current MAC address for eth0.
+  set_fact:
+    node_mac_address: "{{ hostvars[inventory_hostname].ansible_default_ipv4.macaddress }}"
+
+- name: Set variables based on eth0 MAC address.
+  set_fact:
+    node_hostname: "{{ mac_address_mapping[node_mac_address].name }}"
+    node_ip_address: "{{ mac_address_mapping[node_mac_address].ip }}"
+
+- name: Set up networking-related files.
+  template:
+    src: "templates/{{ item.template }}"
+    dest: "{{ item.dest }}"
+    mode: 0644
+  with_items:
+    - { template: hostname.j2, dest: /etc/hostname }
+    - { template: hosts.j2, dest: /etc/hosts }
+    - { template: resolv.conf.j2, dest: /etc/resolv.conf }
+    - { template: dhcpcd.conf.j2, dest: /etc/dhcpcd.conf }
+  notify:
+    - update hostname
+    - delete dhcp leases
+  #  - reboot

@@ -1,0 +1,13 @@
+stream {
+    upstream kubernetes {
+      {% for host in groups['controller'] %}
+        server {{ host }}:6443;
+      {% endfor %}
+    }
+
+    server {
+        listen 6443;
+        listen 443;
+        proxy_pass kubernetes;
+    }
+}

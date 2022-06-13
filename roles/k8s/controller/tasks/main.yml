@@ -1,0 +1,155 @@
+# Install Kubernetes Components 
+
+- name: Add an apt signing key for Kubernetes
+  apt_key:
+   url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+   state: present
+
+- name: Adding apt repository for Kubernetes
+  apt_repository:
+   repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+   state: present
+   filename: kubernetes.list
+
+- name: Install Kubelet
+  apt:
+     name: kubelet
+     state: present
+     update_cache: true
+
+- name: Install Kubeadm
+  apt:
+     name: kubeadm
+     state: present
+     update_cache: true
+
+- name: Install Kubectl
+  apt:
+     name: kubectl
+     state: present
+     update_cache: true
+
+- name: Start Kubelet
+  service:
+    name: kubelet
+    enabled: yes
+    state: started
+
+- name: Check Cluster Status
+  kubernetes.core.k8s_info:
+    kubeconfig: "/home/{{ ansible_user }}/.kube/config"
+    kind: node
+  register: controller_status
+  ignore_errors: true
+
+- name: Display controller status
+  debug: msg="{{ controller_status.api_found }}"
+  when: controller_status.api_found is defined
+
+# Initialize the First Controller 
+- name: Initialize the First Controller
+  block: 
+  - name: Check if kubeadm directory exists.
+    stat:
+      path: /etc/kubernetes/kubeadm
+    register: kdm_folder
+  
+  - name: "Create kubeadm directory if not exists"
+    file:
+      path: /etc/kubernetes/kubeadm/
+      state: directory
+      mode: 0755
+    when: kdm_folder.stat.exists == false
+  
+  - name: Set up the kubeadm config file.
+    template:
+      src: "templates/{{ item.template }}"
+      dest: "{{ item.dest }}"
+      mode: 0644
+    with_items:
+      - { template: kubeadm-config.j2, dest: /etc/kubernetes/kubeadm/kubeadm-config.yml }
+  
+  - name: Initialize the Kubernetes cluster using kubeadm
+    shell: kubeadm init --config=/etc/kubernetes/kubeadm/kubeadm-config.yaml --upload-certs
+  
+  - name: create .kube directory
+    ansible.builtin.file:
+      path: "/home/{{ ansible_user }}/.kube"
+      state: directory
+      mode: 0755
+  
+  - name: copy admin.conf to user's kube config
+    ansible.builtin.copy:
+      src: /etc/kubernetes/admin.conf
+      dest: "/home/{{ ansible_user }}/.kube/config"
+      remote_src: yes
+      owner: "{{ ansible_user }}"
+      mode: 0644
+  
+  - name: Copy kube config file to bastion host
+    ansible.builtin.fetch:
+      src: /home/{{ ansible_user }}/.kube/config
+      dest: ~/.kube/config
+      flat: yes
+
+  when: 
+    - (controller_status.api_found is undefined ) 
+    - ansible_host == hostvars[groups['controller'][0]]['ansible_host'] | default(groups['controller'][0])
+
+
+# Generate Join Command  
+- name: Generate Join Command
+  block: 
+
+  - name: get new certificate-key
+    shell: kubeadm certs certificate-key
+    register: certificate_key_raw
+  
+  - name: Display new certificate-key
+    debug: msg="{{ certificate_key_raw.stdout_lines[0] }}"
+  
+  - name: Initialize the Kubernetes phase upload-certs using kubeadm
+    shell: "sudo kubeadm init phase upload-certs --upload-certs --certificate-key {{ certificate_key_raw.stdout_lines[0] }}"
+  
+  - name: get join command
+    shell: kubeadm token create --print-join-command
+    register: join_command_raw
+  
+  - name: Display join command
+    debug: msg="{{ join_command_raw.stdout_lines[0] }}"
+  
+  - name: set join command
+    set_fact:
+      join_worker_command: "{{ join_command_raw.stdout_lines[0] }}"
+      join_controller_command: "{{ join_command_raw.stdout_lines[0] }}  --control-plane --certificate-key {{ certificate_key_raw.stdout_lines[0] }} "
+      # join_controller_command: "{{ join_command_raw.stdout_lines[0] }}  --control-plane "
+  
+  - name: Display master  join command
+    debug: msg="{{ join_controller_command }}"
+
+  when: ansible_host == hostvars[groups['controller'][0]]['ansible_host'] | default(groups['controller'][0])
+
+# Join remaining contorller nodes 
+- name: Join Other Controllers
+  block: 
+  - name: join cluster as controller
+    shell: "sudo {{ hostvars[groups['controller'][0]].join_controller_command }}"
+   
+  - name: create .kube directory
+    ansible.builtin.file:
+      path: "/home/{{ ansible_user }}/.kube"
+      state: directory
+      mode: 0755
+  
+  - name: copy admin.conf to user's kube config
+    ansible.builtin.copy:
+      src: /etc/kubernetes/admin.conf
+      dest: "/home/{{ ansible_user }}/.kube/config"
+      remote_src: yes
+      owner: "{{ ansible_user }}"
+      mode: 0644
+
+  when: 
+    - (controller_status.api_found is undefined ) 
+    - not ansible_host == hostvars[groups['controller'][0]]['ansible_host'] | default(groups['controller'][0])
+

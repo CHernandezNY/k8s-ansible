@@ -31,12 +31,16 @@
     state: absent
   vars:
      packages:
-     - docker-ce
-     - docker-ce-cli
+     - kubelet  
+     - kubectl  
+     - kubeadm           
      - containerd.io
-     - kubectl
-     - kubeadm
-     - kubelet
+     - docker-ce-cli     
+     - docker-ce
+     
+- name: Remove dependencies that are no longer required
+  apt:
+    autoremove: yes
 
 - name: Clean up flannel and cni
   shell: |

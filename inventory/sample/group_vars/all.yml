@@ -1,0 +1,76 @@
+---
+k8s_version: 1.23.5-00
+
+# this is the user that has ssh access to these machines
+ansible_user: ansibleuser
+systemd_dir: /etc/systemd/system
+
+# Set your timezone
+system_timezone: "Your/Timezone"
+
+# Set CNI plugin choice flannel or calico
+cni_plugin: "flannel"
+
+# interface which will be used for cni binding
+cni_iface: "eth0"
+
+# Flannel Manafest URL
+flannel_url: "https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml"
+
+# apiserver_endpoint is virtual ip-address of the load balancer
+apiserver_endpoint: "192.168.1.17"
+
+# metallb toggle
+metallb_deploy: "true"
+
+# image tag for metal lb
+metallb_version: "v0.12.1"
+
+# metallb ip range for load balancer
+metal_lb_ip_range: "192.168.1.80-192.168.1.90"
+
+# Default Gateway
+default_gateway: "192.168.1.1"
+
+# Nameservers to use in resolv.conf.
+dns_nameservers:
+  - "9.9.9.9"
+  - "1.1.1.1"
+
+# NFS Client Configuration 
+nfs_server: "192.168.1.10"
+nfs_path: "/srv/nfs/kubedata"
+
+# DHCP address of unitilized bare-metal hosts
+new_hosts:
+  - 192.168.1.11
+  - 192.168.1.12
+  - 192.168.1.13
+  - 192.168.1.14
+  - 192.168.1.15
+  - 192.168.1.16
+  - 192.168.1.17
+
+# Mapping of hardware MAC addresses should be configured with specific IPs and Hostnames
+mac_address_mapping:
+  "00:01:ff:33:d6:18":
+    name: ctrl-01.example.local
+    ip: "192.168.1.11"
+  "00:01:ff:1a:e7:78":
+    name: ctrl-02.example.local
+    ip: "192.168.1.12"
+  "00:01:ff:e0:9b:34":
+    name: ctrl-03.example.local
+    ip: "192.168.1.13"
+  "00:01:ff:ca:72:3b":
+    name: wrkr-01.example.local
+    ip: "192.168.1.14"
+  "00:01:ff:86:5c:c4":
+    name: wrkr-02.example.local
+    ip: "192.168.1.15"
+  "00:01:ff:58:51:c2":
+    name: wrkr-03.example.local
+    ip: "192.168.1.16"
+  "00:01:ff:78:78:d5":
+    name: nginx-lb.example.local
+    ip: "192.168.1.17"

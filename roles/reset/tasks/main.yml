@@ -1,0 +1,58 @@
+- name: Reset node via kubeadm
+  shell: "sudo kubeadm reset --force"
+  failed_when: false
+  ignore_errors: true
+
+- name: Check if kubeadm directory exists.
+  stat:
+    path: /etc/kubernetes/kubeadm
+  register: kdm_folder
+
+- name: "Remove kubeadm directory if it exists"
+  file:
+    path: /etc/kubernetes/kubeadm/
+    state: absent
+  when: kdm_folder.stat.exists 
+
+- name: Check if kube config directory exists.
+  stat:
+    path: "/home/{{ ansible_user }}/.kube/"
+  register: kubeconf_folder
+
+- name: "Remove kube config directory if it exists"
+  file:
+    path: "/home/{{ ansible_user }}/.kube/"
+    state: absent
+  when: kubeconf_folder.stat.exists
+
+- name: Remove container runtime and k8s services
+  apt:
+    name: "{{ packages }}"
+    state: absent
+  vars:
+     packages:
+     - docker-ce
+     - docker-ce-cli
+     - containerd.io
+     - kubectl
+     - kubeadm
+     - kubelet
+
+- name: Clean up flannel and cni
+  shell: |
+    sudo ip link delete cni0
+    sudo ip link delete flannel.1
+  failed_when: false
+  ignore_errors: true
+
+- name: Delete downloaded manifest glob
+  find:
+    paths: "~/"
+    patterns: "*.yml"
+  register: files_to_delete
+
+- name: Remove downloaded manifest
+  file:
+    path: "{{ item.path }}"
+    state: absent
+  with_items: "{{ files_to_delete.files }}"   

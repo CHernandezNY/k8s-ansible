@@ -13,13 +13,17 @@
 
 - name: Install Kubelet
   apt:
-     name: kubelet
-     state: present
-     update_cache: true
+    name: "kubelet={{k8s_version}}"
+    state: present
+    update_cache: true
+  register: apt_result
+  until: apt_result is success
+  retries: 3
+  delay: 1
 
 - name: Install Kubeadm
   apt:
-     name: kubeadm
+     name: "kubeadm={{k8s_version}}"
      state: present
      update_cache: true
 
@@ -34,4 +38,4 @@
   block: 
   - name: join cluster as worker
     shell: "sudo {{ hostvars[groups['controller'][0]].join_worker_command }}"
-
+  when: ansible_facts.fqdn not in hostvars[groups['controller'][0]].worker_nodes | json_query('resources[*].metadata.name')

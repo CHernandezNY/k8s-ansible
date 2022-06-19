@@ -1,0 +1,17 @@
+# Install Flannel CNI
+- name: Download flannel manifest to the cluster.
+  ansible.builtin.get_url:
+    url: "{{ flannel_url }}"
+    dest: ~/kube-flannel.yml
+    mode: 0664
+
+- name: Update flannel interface
+  shell: sed -i -e '/containers:$/,/hello:/{/args:$/a '"\        - --iface={{cni_iface}}" -e '}' ~/kube-flannel.yml
+   
+- name: Install flannel CNI
+  k8s:
+    kubeconfig: "/home/{{ ansible_user }}/.kube/config" 
+    state: present              
+    src: ~/kube-flannel.yml
+  when: 
+    - ansible_host == hostvars[groups['controller'][0]]['ansible_host'] | default(groups['controller'][0])

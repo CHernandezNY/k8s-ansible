@@ -20,6 +20,16 @@
   roles:
     - role: k8s/controller
 
+- hosts: controller
+  become: yes
+  roles:
+    - role: k8s/cni
+
+- hosts: controller
+  become: yes
+  roles:
+    - role: metallb
+
 - hosts: worker
   become: yes
   roles:

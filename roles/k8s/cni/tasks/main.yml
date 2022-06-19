@@ -1,0 +1,7 @@
+- name: execute CNI related tasks 
+  include_tasks: "{{ cni }}"
+  with_first_found:
+    - "./{{ cni_plugin }}.yml"
+    - "./default.yml"
+  loop_control:
+    loop_var: cni

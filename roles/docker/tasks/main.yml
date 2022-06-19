@@ -11,9 +11,9 @@
 
 - name: Install docker-ce
   apt:
-     name: docker-ce
-     state: present
-     update_cache: true
+    name: docker-ce
+    state: present
+    update_cache: true
   register: apt_result
   until: apt_result is success
   retries: 3
@@ -21,15 +21,15 @@
 
 - name: Install docker-ce-cli
   apt:
-     name: docker-ce-cli
-     state: present
-     update_cache: true
+    name: docker-ce-cli
+    state: present
+    update_cache: true
 
 - name: Install containerd.io
   apt:
-     name: containerd.io
-     state: present
-     update_cache: true
+    name: containerd.io
+    state: present
+    update_cache: true
 
 - name: Delete containerd config.toml
   file:

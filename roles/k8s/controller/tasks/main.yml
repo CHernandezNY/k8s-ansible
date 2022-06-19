@@ -2,32 +2,37 @@
 
 - name: Add an apt signing key for Kubernetes
   apt_key:
-   url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
-   state: present
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    state: present
 
 - name: Adding apt repository for Kubernetes
   apt_repository:
-   repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
-   state: present
-   filename: kubernetes.list
+    repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+    state: present
+    filename: kubernetes.list
 
 - name: Install Kubelet
   apt:
-     name: kubelet
-     state: present
-     update_cache: true
+    name: "kubelet={{k8s_version}}"
+    state: present
+    update_cache: true
+  register: apt_result
+  until: apt_result is success
+  retries: 3
+  delay: 1
 
 - name: Install Kubeadm
   apt:
-     name: kubeadm
-     state: present
-     update_cache: true
+    name: "kubeadm={{k8s_version}}"
+    state: present
+    update_cache: true
 
 - name: Install Kubectl
   apt:
-     name: kubectl
-     state: present
-     update_cache: true
+    name: "kubectl={{k8s_version}}"
+    state: present
+    update_cache: true
+    allow_downgrade: yes
 
 - name: Start Kubelet
   service:
@@ -37,15 +42,12 @@
 
 - name: Check Cluster Status
   kubernetes.core.k8s_info:
-    kubeconfig: "/home/{{ ansible_user }}/.kube/config"
+    kubeconfig: "/home/{{ ansible_user }}/.kube/config" 
     kind: node
   register: controller_status
+  failed_when: false
   ignore_errors: true
-
-- name: Display controller status
-  debug: msg="{{ controller_status.api_found }}"
-  when: controller_status.api_found is defined
-
+  
 # Initialize the First Controller 
 - name: Initialize the First Controller
   block: 
@@ -70,7 +72,7 @@
       - { template: kubeadm-config.j2, dest: /etc/kubernetes/kubeadm/kubeadm-config.yml }
   
   - name: Initialize the Kubernetes cluster using kubeadm
-    shell: kubeadm init --config=/etc/kubernetes/kubeadm/kubeadm-config.yaml --upload-certs
+    shell: kubeadm init --config=/etc/kubernetes/kubeadm/kubeadm-config.yml --upload-certs
   
   - name: create .kube directory
     ansible.builtin.file:
@@ -96,7 +98,6 @@
     - (controller_status.api_found is undefined ) 
     - ansible_host == hostvars[groups['controller'][0]]['ansible_host'] | default(groups['controller'][0])
 
-
 # Generate Join Command  
 - name: Generate Join Command
   block: 
@@ -105,9 +106,6 @@
     shell: kubeadm certs certificate-key
     register: certificate_key_raw
   
-  - name: Display new certificate-key
-    debug: msg="{{ certificate_key_raw.stdout_lines[0] }}"
-  
   - name: Initialize the Kubernetes phase upload-certs using kubeadm
     shell: "sudo kubeadm init phase upload-certs --upload-certs --certificate-key {{ certificate_key_raw.stdout_lines[0] }}"
   
@@ -115,14 +113,10 @@
     shell: kubeadm token create --print-join-command
     register: join_command_raw
   
-  - name: Display join command
-    debug: msg="{{ join_command_raw.stdout_lines[0] }}"
-  
-  - name: set join command
+  - name: set join commands
     set_fact:
       join_worker_command: "{{ join_command_raw.stdout_lines[0] }}"
       join_controller_command: "{{ join_command_raw.stdout_lines[0] }}  --control-plane --certificate-key {{ certificate_key_raw.stdout_lines[0] }} "
-      # join_controller_command: "{{ join_command_raw.stdout_lines[0] }}  --control-plane "
   
   - name: Display master  join command
     debug: msg="{{ join_controller_command }}"
@@ -152,4 +146,13 @@
   when: 
     - (controller_status.api_found is undefined ) 
     - not ansible_host == hostvars[groups['controller'][0]]['ansible_host'] | default(groups['controller'][0])
+
+- name: Gather worker nodes
+  kubernetes.core.k8s_info:
+    kubeconfig: "/home/{{ ansible_user }}/.kube/config" 
+    kind: node
+    label_selectors: "!node-role.kubernetes.io/control-plane"
+  register: worker_nodes
+
+ 
 

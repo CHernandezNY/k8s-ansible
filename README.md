@@ -2,7 +2,7 @@
 
 ## K8s Ansible Playbook
 
-Build a Kubernetes cluster using Ansible with k3s. The goal is easily install a Kubernetes cluster on machines running:
+Build a Kubernetes cluster using Ansible with kubeadmin. The goal is easily install a Kubernetes cluster on machines running:
 
 - [ ] Debian
 - [X] Ubuntu
@@ -46,13 +46,13 @@ controller
 worker
 ```
 
-If multiple hosts are in the controller group, the playbook will automatically set up k3s in [HA mode with etcd](https://rancher.com/docs/k3s/latest/en/installation/ha-embedded/).
+If multiple hosts are in the controller group, the playbook will automatically set up k8s in HA using kubeadm.
 
 This cluster was designed to use an external NGINX load balancer for the Control Plane API
 
 This requires at least k8s version '1.19.1' however the version is configurable by using the 'k8s_version' variable.
 
-If needed, you can also edit `inventory/group_vars/all.yml` to match your environment.
+If needed, you can also edit 'inventory/group_vars/all.yml' to match your environment.
 
 ### Create Cluster
 

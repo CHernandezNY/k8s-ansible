@@ -24,7 +24,7 @@ podsubnet: "10.244.0.0/16"
 apiserver_endpoint: "192.168.1.17"
 
 # metallb toggle
-metallb_deploy: "true"
+metallb_deploy: true
 
 # image tag for metal lb
 metallb_version: "v0.12.1"

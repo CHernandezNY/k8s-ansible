@@ -37,4 +37,5 @@
     path: /etc/containerd/config.toml
   notify:
     - Restart Docker
+    - Restart Containerd
 

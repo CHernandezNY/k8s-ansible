@@ -11,7 +11,7 @@
 
 - name: Install docker-ce
   apt:
-    name: docker-ce
+    name: docker-ce=5:{{ docker_version }}~3-0~{{ ansible_distribution | lower }}-{{ ansible_distribution_release }}
     state: present
     update_cache: true
   register: apt_result

@@ -13,7 +13,7 @@
 
 - name: Install Kubelet
   apt:
-    name: "kubelet={{k8s_version}}"
+    name: "kubelet={{k8s_version}}-00"
     state: present
     update_cache: true
   register: apt_result
@@ -23,13 +23,13 @@
 
 - name: Install Kubeadm
   apt:
-    name: "kubeadm={{k8s_version}}"
+    name: "kubeadm={{k8s_version}}-00"
     state: present
     update_cache: true
 
 - name: Install Kubectl
   apt:
-    name: "kubectl={{k8s_version}}"
+    name: "kubectl={{k8s_version}}-00"
     state: present
     update_cache: true
     allow_downgrade: yes
@@ -118,9 +118,6 @@
       join_worker_command: "{{ join_command_raw.stdout_lines[0] }}"
       join_controller_command: "{{ join_command_raw.stdout_lines[0] }}  --control-plane --certificate-key {{ certificate_key_raw.stdout_lines[0] }} "
   
-  - name: Display master  join command
-    debug: msg="{{ join_controller_command }}"
-
   when: ansible_host == hostvars[groups['controller'][0]]['ansible_host'] | default(groups['controller'][0])
 
 # Join remaining contorller nodes 
@@ -153,6 +150,3 @@
     kind: node
     label_selectors: "!node-role.kubernetes.io/control-plane"
   register: worker_nodes
-
- 
-

@@ -13,7 +13,7 @@
 
 - name: Install Kubelet
   apt:
-    name: "kubelet={{k8s_version}}"
+    name: "kubelet={{k8s_version}}-00"
     state: present
     update_cache: true
   register: apt_result
@@ -23,7 +23,7 @@
 
 - name: Install Kubeadm
   apt:
-     name: "kubeadm={{k8s_version}}"
+     name: "kubeadm={{k8s_version}}-00"
      state: present
      update_cache: true
 

@@ -3,3 +3,7 @@
     name: docker
     state: restarted
 
+- name: Restart Containerd
+  service:
+    name: containerd
+    state: restarted

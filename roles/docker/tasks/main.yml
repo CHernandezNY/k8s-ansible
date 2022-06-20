@@ -35,7 +35,6 @@
   file:
     state: absent
     path: /etc/containerd/config.toml
-  when: ansible_host == hostvars[groups['controller'][0]]['ansible_host'] | default(groups['controller'][0])
   notify:
     - Restart Docker
 

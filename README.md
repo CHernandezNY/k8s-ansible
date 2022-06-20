@@ -50,7 +50,7 @@ If multiple hosts are in the controller group, the playbook will automatically s
 
 This cluster was designed to use an external NGINX load balancer for the Control Plane API
 
-This requires at least k8s version `1.24.2` however the version is configurable by using the `k3s_version` variable.
+This requires at least k8s version '1.19.1' however the version is configurable by using the 'k8s_version' variable.
 
 If needed, you can also edit `inventory/group_vars/all.yml` to match your environment.
 

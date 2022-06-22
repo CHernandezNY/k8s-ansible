@@ -14,6 +14,8 @@
     name: docker-ce=5:{{ docker_version }}~3-0~{{ ansible_distribution | lower }}-{{ ansible_distribution_release }}
     state: present
     update_cache: true
+ #   install_recommends: no
+    allow_downgrade: yes
   register: apt_result
   until: apt_result is success
   retries: 3
@@ -21,15 +23,18 @@
 
 - name: Install docker-ce-cli
   apt:
-    name: docker-ce-cli
+    name: docker-ce-cli=5:{{ docker_version }}~3-0~{{ ansible_distribution | lower }}-{{ ansible_distribution_release }}
     state: present
     update_cache: true
+ #   install_recommends: no
+    allow_downgrade: yes
 
 - name: Install containerd.io
   apt:
-    name: containerd.io
+    name: containerd.io={{ containerd_version }}-1
     state: present
     update_cache: true
+    allow_downgrade: yes
 
 - name: Delete containerd config.toml
   file:

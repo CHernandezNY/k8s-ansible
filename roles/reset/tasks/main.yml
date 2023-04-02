@@ -37,7 +37,9 @@
      - containerd.io
      - docker-ce-cli     
      - docker-ce
-     
+     - docker-buildx-plugin
+     - docker-compose-plugin
+
 - name: Remove dependencies that are no longer required
   apt:
     autoremove: yes

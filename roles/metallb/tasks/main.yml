@@ -1,25 +1,25 @@
 - name: Install MetalLB
   block: 
 
-  - name: Download metallb namespace manifest to first controller
-    ansible.builtin.get_url:
-      url: "https://raw.githubusercontent.com/metallb/metallb/{{metallb_version}}/manifests/namespace.yaml"
-      dest: ~/metallb-namespace.yml
-      mode: 0664
+#  - name: Download metallb namespace manifest to first controller
+#    ansible.builtin.get_url:
+#      url: "https://raw.githubusercontent.com/metallb/metallb/{{metallb_version}}/manifests/namespace.yaml"
+#      dest: ~/metallb-namespace.yml
+#      mode: 0664
   
   - name: Download metallb main manifest to first controller
     ansible.builtin.get_url:
-      url: "https://raw.githubusercontent.com/metallb/metallb/{{metallb_version}}/manifests/metallb.yaml"
+      url: "https://raw.githubusercontent.com/metallb/metallb/{{metallb_version}}/config/manifests/metallb-native.yaml"
       dest: ~/metallb.yml
       mode: 0664
   
-  - name: Create metallb namespace
-    k8s:
-      kubeconfig: "/home/{{ ansible_user }}/.kube/config" 
-      state: present              
-      src: ~/metallb-namespace.yml
-    when: 
-      - ansible_host == hostvars[groups['controller'][0]]['ansible_host'] | default(groups['controller'][0])
+#  - name: Create metallb namespace
+#    k8s:
+#      kubeconfig: "/home/{{ ansible_user }}/.kube/config" 
+#      state: present              
+#      src: ~/metallb-namespace.yml
+#    when: 
+#      - ansible_host == hostvars[groups['controller'][0]]['ansible_host'] | default(groups['controller'][0])
   
   - name: Install metallb
     k8s:
@@ -29,6 +29,18 @@
     when: 
       - ansible_host == hostvars[groups['controller'][0]]['ansible_host'] | default(groups['controller'][0])
   
+  - name: "Status of the metallb controller"
+    k8s_info:
+      kubeconfig: "/home/{{ ansible_user }}/.kube/config"
+      api_version: v1
+      kind: Deployment
+      name: controller
+      namespace: metallb-system
+    register: web_service
+    until: web_service.resources | json_query('[*].status.conditions[?reason==`NewReplicaSetAvailable`][].status') | select ('match','True') | list | length == 1
+    delay: 12
+    retries: 5
+
   - name: Copy metallb ConfigMap manifest to first controller
     template:
       src: "metallb.configmap.j2"
@@ -36,7 +48,7 @@
       mode: 0664
     when: ansible_host == hostvars[groups['controller'][0]]['ansible_host'] | default(groups['controller'][0])
   
-  - name: Deploy metallb ConfigMap
+  - name: Deploy metallb configuration
     k8s:
       kubeconfig: "/home/{{ ansible_user }}/.kube/config" 
       state: present              

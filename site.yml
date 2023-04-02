@@ -1,36 +1,36 @@
 ---
 - hosts: all
-  gather_facts: yes
-  become: yes
+  gather_facts: true
+  become: true
   roles:
     - role: prereq
 
 - hosts: balancer
-  become: yes
+  become: true
   roles:
     - role: balancer
 
 - hosts: k8s_cluster
-  become: yes
+  become: true
   roles:
     - role: docker
 
 - hosts: controller
-  become: yes
+  become: true
   roles:
     - role: k8s/controller
 
 - hosts: controller
-  become: yes
+  become: true
   roles:
     - role: k8s/cni
 
-- hosts: controller
-  become: yes
-  roles:
-    - role: metallb
-
 - hosts: worker
-  become: yes
+  become: true
   roles:
     - role: k8s/worker
+
+- hosts: controller
+  become: true
+  roles:
+    - role: metallb    

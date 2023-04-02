@@ -107,7 +107,7 @@
     register: certificate_key_raw
   
   - name: Initialize the Kubernetes phase upload-certs using kubeadm
-    shell: "sudo kubeadm init phase upload-certs --upload-certs --certificate-key {{ certificate_key_raw.stdout_lines[0] }}"
+    shell: "sudo kubeadm init phase upload-certs --upload-certs --certificate-key {{ certificate_key_raw.stdout_lines[0] }} "
   
   - name: get join command
     shell: kubeadm token create --print-join-command

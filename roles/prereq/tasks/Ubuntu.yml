@@ -1,12 +1,10 @@
 ---
 - name: Disable swap
   become: true
-  shell: >
-    sudo swapoff -v /swap.img
+  shell: |
+    sudo swapoff -a
     sudo rm /swap.img
   when: ansible_swaptotal_mb > 0
-  delay: 12
-  retries: 5
 
 - name: Install packages that allow apt to be used over HTTPS
   apt:

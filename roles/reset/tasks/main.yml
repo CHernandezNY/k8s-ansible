@@ -30,15 +30,15 @@
     name: "{{ packages }}"
     state: absent
   vars:
-     packages:
-     - kubelet  
-     - kubectl  
-     - kubeadm           
-     - containerd.io
-     - docker-ce-cli     
-     - docker-ce
-     - docker-buildx-plugin
-     - docker-compose-plugin
+    packages:
+    - kubelet  
+    - kubectl  
+    - kubeadm           
+    - containerd.io
+    - docker-ce-cli     
+    - docker-ce
+    - docker-buildx-plugin
+    - docker-compose-plugin
 
 - name: Remove dependencies that are no longer required
   apt:

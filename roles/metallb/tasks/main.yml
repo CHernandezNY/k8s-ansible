@@ -1,26 +1,12 @@
 - name: Install MetalLB
   block: 
 
-#  - name: Download metallb namespace manifest to first controller
-#    ansible.builtin.get_url:
-#      url: "https://raw.githubusercontent.com/metallb/metallb/{{metallb_version}}/manifests/namespace.yaml"
-#      dest: ~/metallb-namespace.yml
-#      mode: 0664
-  
   - name: Download metallb main manifest to first controller
     ansible.builtin.get_url:
       url: "https://raw.githubusercontent.com/metallb/metallb/{{metallb_version}}/config/manifests/metallb-native.yaml"
       dest: ~/metallb.yml
       mode: 0664
-  
-#  - name: Create metallb namespace
-#    k8s:
-#      kubeconfig: "/home/{{ ansible_user }}/.kube/config" 
-#      state: present              
-#      src: ~/metallb-namespace.yml
-#    when: 
-#      - ansible_host == hostvars[groups['controller'][0]]['ansible_host'] | default(groups['controller'][0])
-  
+ 
   - name: Install metallb
     k8s:
       kubeconfig: "/home/{{ ansible_user }}/.kube/config" 

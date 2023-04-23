@@ -3,7 +3,7 @@
   become: true
   shell: |
     sudo swapoff -a
-    sudo rm /swap.img
+    sudo rm -f /swap.img
   when: ansible_swaptotal_mb > 0
 
 - name: Install packages that allow apt to be used over HTTPS

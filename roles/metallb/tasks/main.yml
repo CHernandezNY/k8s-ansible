@@ -24,8 +24,8 @@
       namespace: metallb-system
     register: web_service
     until: web_service.resources | json_query('[*].status.conditions[?reason==`NewReplicaSetAvailable`][].status') | select ('match','True') | list | length == 1
-    delay: 12
-    retries: 5
+    delay: 15
+    retries: 10
 
   - name: Copy metallb ConfigMap manifest to first controller
     template:

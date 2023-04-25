@@ -44,6 +44,18 @@
   apt:
     autoremove: yes
 
+- name: Delete downloaded manifest glob
+  find:
+    paths: "~/"
+    patterns: "*.yml"
+  register: files_to_delete
+
+- name: Remove downloaded manifest
+  file:
+    path: "{{ item.path }}"
+    state: absent
+  with_items: "{{ files_to_delete.files }}"   
+
 - name: Clean up cni interfaces
   shell: |
     sudo ip link delete cni0
@@ -57,15 +69,5 @@
     sudo ip link delete kube-ipvs0
   failed_when: false
   ignore_errors: true
-
-- name: Delete downloaded manifest glob
-  find:
-    paths: "~/"
-    patterns: "*.yml"
-  register: files_to_delete
-
-- name: Remove downloaded manifest
-  file:
-    path: "{{ item.path }}"
-    state: absent
-  with_items: "{{ files_to_delete.files }}"   
+  notify:
+    - reboot

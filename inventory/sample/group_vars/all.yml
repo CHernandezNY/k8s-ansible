@@ -1,9 +1,9 @@
 ---
-k8s_version: 1.20.15
+k8s_version: 1.26.1
 
-docker_version: 19.03.15
+docker_version: 20.10.24
 
-containerd_version: 1.5.11
+containerd_version: 1.6.19
 
 # this is the user that has ssh access to these machines
 ansible_user: ansibleuser
@@ -12,16 +12,14 @@ systemd_dir: /etc/systemd/system
 # Set your timezone
 system_timezone: "Your/Timezone"
 
-# Set CNI plugin choice flannel or calico
+# Set CNI plugin choice flannel, calico or canal
 cni_plugin: "flannel"
 
 # interface which will be used for cni binding
 cni_iface: "eth0"
 
-# Flannel Manafest URL
-flannel_url: "https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml"
-
 # POD Subnet
+# check cni documentation for the appropriate cidr
 podsubnet: "10.244.0.0/16"
 
 # apiserver_endpoint is virtual ip-address of the load balancer
@@ -81,3 +79,12 @@ mac_address_mapping:
   "00:01:ff:78:78:d5":
     name: nginx-lb.example.local
     ip: "192.168.1.17"
+
+# CNI Manifest URLs
+# Calico Manifest url 
+calico_url: "https://raw.githubusercontent.com/projectcalico/calico/v3.25.1/manifests/tigera-operator.yaml"
+calico_crd: "https://raw.githubusercontent.com/projectcalico/calico/v3.25.1/manifests/custom-resources.yaml"
+# Flannel Manifest URL
+flannel_url: "https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml"
+# Canal Manifest URL 
+canal_url: "https://raw.githubusercontent.com/projectcalico/calico/v3.25.1/manifests/canal.yaml"

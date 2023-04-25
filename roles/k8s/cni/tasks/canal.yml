@@ -1,23 +1,27 @@
 ---
-- name: Download flannel manifest to the cluster.
+- name: Download canal manifest to the cluster.
   ansible.builtin.get_url:
-    url: "{{ flannel_url }}"
-    dest: ~/kube-flannel.yml
+    url: "{{ canal_url }}"
+    dest: ~/canal.yml
     mode: 0664
 
 - name: Update pod subnet
   replace:
-    path: "~/kube-flannel.yml"
+    path: "~/canal.yml"
     regexp: "10.244.0.0/16"
     replace: "{{ podsubnet }}"
 
-- name: Update flannel interface
-  shell: sed -i -e '/containers:$/,/args:$/{/args:$/a '"\        - --iface={{cni_iface}}" -e '}' ~/kube-flannel.yml
+- name: Update canal interface
+  replace:
+    path: "~/canal.yml"
+    regexp: 'canal_iface: ""'
+    replace: 'canal_iface: "{{cni_iface}}"'
+
    
-- name: Install flannel CNI
+- name: Install canal CNI
   k8s:
     kubeconfig: "/home/{{ ansible_user }}/.kube/config" 
     state: present              
-    src: ~/kube-flannel.yml
+    src: ~/canal.yml
   when: 
     - ansible_host == hostvars[groups['controller'][0]]['ansible_host'] | default(groups['controller'][0])

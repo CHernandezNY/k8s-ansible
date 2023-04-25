@@ -1,0 +1,46 @@
+---
+- name: Download calico operator manifest to the cluster.
+  ansible.builtin.get_url:
+    url: "{{ calico_url }}"
+    dest: ~/calico.yml
+    mode: 0664
+
+- name: Download calico crd manifest to the cluster.
+  ansible.builtin.get_url:
+    url: "{{ calico_crd }}"
+    dest: ~/calico-crd.yml
+    mode: 0664
+
+- name: Install calico operator
+  k8s:
+    kubeconfig: "/home/{{ ansible_user }}/.kube/config" 
+    state: present              
+    src: ~/calico.yml
+  when: 
+    - ansible_host == hostvars[groups['controller'][0]]['ansible_host'] | default(groups['controller'][0])
+
+- name: Update pod subnet
+  replace:
+    path: "~/calico-crd.yml"
+    regexp: "192.168.0.0/16"
+    replace: "{{ podsubnet }}"
+
+- name: Install calico crd
+  k8s:
+    kubeconfig: "/home/{{ ansible_user }}/.kube/config" 
+    state: present              
+    src: ~/calico-crd.yml
+  when: 
+    - ansible_host == hostvars[groups['controller'][0]]['ansible_host'] | default(groups['controller'][0])
+
+- name: "Status of the calico controller"
+  k8s_info:
+    kubeconfig: "/home/{{ ansible_user }}/.kube/config"
+    api_version: v1
+    kind: Deployment
+    name: calico-kube-controllers
+    namespace: calico-system
+  register: calico_service
+  until: calico_service.resources | json_query('[*].status.conditions[?reason==`NewReplicaSetAvailable`][].status') | select ('match','True') | list | length == 1
+  delay: 15
+  retries: 10

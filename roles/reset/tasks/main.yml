@@ -44,10 +44,17 @@
   apt:
     autoremove: yes
 
-- name: Clean up flannel and cni
+- name: Clean up cni interfaces
   shell: |
     sudo ip link delete cni0
     sudo ip link delete flannel.1
+    sudo ip link delete flannel-v6.1
+    sudo ip link delete flannel-wg
+    sudo ip link delete vxlan.calico
+    sudo ip link delete vxlan-v6.calico
+    sudo ip link delete cilium_vxlan
+    sudo ip link delete cilium_net
+    sudo ip link delete kube-ipvs0
   failed_when: false
   ignore_errors: true
 

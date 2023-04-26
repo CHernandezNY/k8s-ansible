@@ -20,7 +20,7 @@
     - ansible_host == hostvars[groups['controller'][0]]['ansible_host'] | default(groups['controller'][0])
 
 - name: Update calico interface
-  shell: sed -i -e '/calicoNetwork:/a\    nodeAddressAutodetectionV4:\n      interface:\ {{cni_iface}}' '{{ playbook_dir }}'/temp/calico-crd.yml
+  shell: sed -i -e '/calicoNetwork:/a\    nodeAddressAutodetectionV4:\n      interface:\ {{cni_iface}}' ~/calico-crd.yml
 
 - name: Update pod subnet
   replace:

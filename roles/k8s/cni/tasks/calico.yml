@@ -4,12 +4,16 @@
     url: "{{ calico_url }}"
     dest: ~/calico.yml
     mode: 0664
+  when: 
+    - ansible_host == hostvars[groups['controller'][0]]['ansible_host'] | default(groups['controller'][0])
 
 - name: Download calico crd manifest to the cluster.
   ansible.builtin.get_url:
     url: "{{ calico_crd }}"
     dest: ~/calico-crd.yml
     mode: 0664
+  when: 
+    - ansible_host == hostvars[groups['controller'][0]]['ansible_host'] | default(groups['controller'][0])
 
 - name: Install calico operator
   k8s:
@@ -21,12 +25,16 @@
 
 - name: Update calico interface
   shell: sed -i -e '/calicoNetwork:/a\    nodeAddressAutodetectionV4:\n      interface:\ {{cni_iface}}' ~/calico-crd.yml
+  when: 
+    - ansible_host == hostvars[groups['controller'][0]]['ansible_host'] | default(groups['controller'][0])
 
 - name: Update pod subnet
   replace:
     path: "~/calico-crd.yml"
     regexp: "192.168.0.0/16"
     replace: "{{ podsubnet }}"
+  when: 
+    - ansible_host == hostvars[groups['controller'][0]]['ansible_host'] | default(groups['controller'][0])
 
 - name: Install calico crd
   k8s:

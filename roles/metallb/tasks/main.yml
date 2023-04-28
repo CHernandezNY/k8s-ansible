@@ -22,8 +22,8 @@
       kind: Deployment
       name: controller
       namespace: metallb-system
-    register: web_service
-    until: web_service.resources | json_query('[*].status.conditions[?reason==`NewReplicaSetAvailable`][].status') | select ('match','True') | list | length == 1
+    register: metallb_service
+    until: metallb_service.resources | json_query('[*].status.conditions[?reason==`NewReplicaSetAvailable`][].status') | select ('match','True') | list | length == 1
     delay: 15
     retries: 10
 

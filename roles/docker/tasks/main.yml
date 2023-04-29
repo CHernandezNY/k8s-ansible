@@ -19,7 +19,7 @@
   register: apt_result
   until: apt_result is success
   retries: 10
-  delay: 5
+  delay: 15
 
 - name: Install docker-ce-cli
   apt:
@@ -28,6 +28,10 @@
     update_cache: true
     install_recommends: no
     allow_downgrade: yes
+  register: apt_result
+  until: apt_result is success
+  retries: 10
+  delay: 15
 
 - name: Install containerd.io
   apt:
@@ -35,6 +39,10 @@
     state: present
     update_cache: true
     allow_downgrade: yes
+  register: apt_result
+  until: apt_result is success
+  retries: 10
+  delay: 15
 
 - name: Delete containerd config.toml
   file:

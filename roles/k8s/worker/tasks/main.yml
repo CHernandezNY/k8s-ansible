@@ -18,14 +18,18 @@
     update_cache: true
   register: apt_result
   until: apt_result is success
-  retries: 3
-  delay: 1
+  retries: 10
+  delay: 15
 
 - name: Install Kubeadm
   apt:
      name: "kubeadm={{k8s_version}}-00"
      state: present
      update_cache: true
+  register: apt_result
+  until: apt_result is success
+  retries: 10
+  delay: 15
 
 - name: Start Kubelet
   service:

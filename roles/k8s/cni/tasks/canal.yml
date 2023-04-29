@@ -25,3 +25,15 @@
     src: ~/canal.yml
   when: 
     - ansible_host == hostvars[groups['controller'][0]]['ansible_host'] | default(groups['controller'][0])
+
+- name: "Status of the canal calico controller"
+  k8s_info:
+    kubeconfig: "/home/{{ ansible_user }}/.kube/config"
+    api_version: v1
+    kind: Deployment
+    name: calico-kube-controllers
+    namespace: kube-system
+  register: calico_service
+  until: calico_service.resources | json_query('[*].status.conditions[?reason==`NewReplicaSetAvailable`][].status') | select ('match','True') | list | length == 1
+  delay: 15
+  retries: 10

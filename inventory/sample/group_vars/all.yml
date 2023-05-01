@@ -25,15 +25,6 @@ podsubnet: "10.244.0.0/16"
 # apiserver_endpoint is virtual ip-address of the load balancer
 apiserver_endpoint: "192.168.1.17"
 
-# metallb toggle
-metallb_deploy: true
-
-# image tag for metal lb
-metallb_version: "v0.12.1"
-
-# metallb ip range for load balancer
-metal_lb_ip_range: "192.168.1.80-192.168.1.90"
-
 # Default Gateway
 default_gateway: "192.168.1.1"
 

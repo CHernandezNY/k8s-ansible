@@ -7,7 +7,7 @@ Build a Kubernetes cluster using Ansible with kubeadmin. The goal is easily inst
 - [ ] Debian
 - [X] Ubuntu
 - [X] Raspbian
-- [ ] CentOS
+- [X] CentOS 8
 
 on processor architecture:
 

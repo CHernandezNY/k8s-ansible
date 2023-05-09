@@ -26,7 +26,7 @@
   when: kubeconf_folder.stat.exists
 
 - name: Remove container runtime and k8s services
-  apt:
+  package:
     name: "{{ packages }}"
     state: absent
   vars:
@@ -41,7 +41,7 @@
     - docker-compose-plugin
 
 - name: Remove dependencies that are no longer required
-  apt:
+  package:
     autoremove: yes
 
 - name: Delete downloaded manifest glob

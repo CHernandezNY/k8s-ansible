@@ -1,11 +1,27 @@
 ---
+- name: Ansible Distribution 
+  debug:
+    msg:  "{{ ansible_distribution }} - {{ ansible_distribution_major_version }} - {{ ansible_distribution_version }} - {{ ansible_distribution_release }}"
+    
+
+- name: Ansible Facts
+  debug:
+    msg:
+      - "distribution - distribution_major_version - distribution_version - distribution_release - architecture - os_family"
+      - "{{ ansible_facts.distribution }} -  {{ ansible_facts.distribution_major_version }} - {{ ansible_facts.distribution_version }} - {{ ansible_facts.distribution_release}} - {{ ansible_facts.architecture }} - {{ ansible_facts.os_family}}"
+  ignore_errors: true
+
 - name: Set detected_distribution 
   set_fact:
-    detected_distribution: "{{ ansible_facts.lsb.id }}"
+    detected_distribution: "{{ ansible_distribution }}"
 
 - name: Set detected_distribution_major_release
   set_fact:
-    detected_distribution_major_release: "{{ ansible_facts.lsb.major_release }}"
+    detected_distribution_major_release: "{{ ansible_distribution_major_version }}"
+
+- name: Show Distribution and Release
+  debug:
+    msg:  "{{ detected_distribution }}-{{ detected_distribution_major_release }}"
 
 - name: execute OS related tasks 
   include_tasks: "{{ oses }}"

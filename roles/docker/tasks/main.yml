@@ -1,54 +1,137 @@
-# Install Container Runtime
-- name: Add an apt signing key for Docker
-  apt_key:
-    url: "https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg"
-    state: present
+- name: Debian Based OS = Docker Install 
+  block:
+  - name: Add an apt signing key for Docker
+    apt_key:
+      url: "https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg"
+      state: present
+  
+  - name: Add apt repository for stable version
+    apt_repository:
+      repo: "deb https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
+      state: present
+  
+  - name: Install docker-ce
+    apt:
+      name: docker-ce=5:{{ docker_version }}~3-0~{{ ansible_distribution | lower }}-{{ ansible_distribution_release }}
+      state: present
+      update_cache: true
+      allow_downgrade: yes
+    register: apt_result
+    until: apt_result is success
+    retries: 10
+    delay: 15
+  
+  - name: Install docker-ce-cli
+    apt:
+      name: docker-ce-cli=5:{{ docker_version }}~3-0~{{ ansible_distribution | lower }}-{{ ansible_distribution_release }}
+      state: present
+      update_cache: true
+      install_recommends: no
+      allow_downgrade: yes
+    register: apt_result
+    until: apt_result is success
+    retries: 10
+    delay: 15
+  
+  - name: Install containerd.io
+    apt:
+      name: containerd.io={{ containerd_version }}-1
+      state: present
+      update_cache: true
+      allow_downgrade: yes
+    register: apt_result
+    until: apt_result is success
+    retries: 10
+    delay: 15
+  
+  - name: Delete containerd config.toml
+    file:
+      state: absent
+      path: /etc/containerd/config.toml
+    notify:
+      - Restart Docker
+      - Restart Containerd
+  when: ansible_os_family == "Debian"
 
-- name: Add apt repository for stable version
-  apt_repository:
-    repo: "deb https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
-    state: present
+- name: RedHat Based OS = Docker Install
+  block:
+  - name: Download and Add Docker repository
+    ansible.builtin.get_url:
+      url: "https://download.docker.com/linux/centos/docker-ce.repo"
+      dest: /etc/yum.repos.d/docker-ce.repo
+      mode: 0664
 
-- name: Install docker-ce
-  apt:
-    name: docker-ce=5:{{ docker_version }}~3-0~{{ ansible_distribution | lower }}-{{ ansible_distribution_release }}
-    state: present
-    update_cache: true
- #   install_recommends: no
-    allow_downgrade: yes
-  register: apt_result
-  until: apt_result is success
-  retries: 10
-  delay: 15
+  - name: Install containerd.io
+    yum:
+      name: containerd.io-{{ containerd_version }}
+      state: present
+      update_cache: true
+      allow_downgrade: yes
+    register: yum_result
+    until: yum_result is success
+    retries: 10
+    delay: 15
 
-- name: Install docker-ce-cli
-  apt:
-    name: docker-ce-cli=5:{{ docker_version }}~3-0~{{ ansible_distribution | lower }}-{{ ansible_distribution_release }}
-    state: present
-    update_cache: true
-    install_recommends: no
-    allow_downgrade: yes
-  register: apt_result
-  until: apt_result is success
-  retries: 10
-  delay: 15
+  - name: Install docker-ce-cli
+    yum:
+      name: docker-ce-cli-1:{{ docker_version }}
+      state: present
+      update_cache: true
+      allow_downgrade: yes
+    register: yum_result
+    until: yum_result is success
+    retries: 10
+    delay: 15
 
-- name: Install containerd.io
-  apt:
-    name: containerd.io={{ containerd_version }}-1
-    state: present
-    update_cache: true
-    allow_downgrade: yes
-  register: apt_result
-  until: apt_result is success
-  retries: 10
-  delay: 15
+  - name: Install docker-ce
+    yum:
+      name: docker-ce-3:{{ docker_version }}
+      state: present
+      update_cache: true
+      allow_downgrade: yes
+    register: yum_result
+    until: yum_result is success
+    retries: 10
+    delay: 15
 
-- name: Delete containerd config.toml
-  file:
-    state: absent
-    path: /etc/containerd/config.toml
-  notify:
-    - Restart Docker
-    - Restart Containerd
+  - name: Start Docker Runtime
+    service:
+      name: docker
+      state: started
+      enabled: true
 
+  - name: Start ContainerD Runtime
+    service:
+      name: containerd
+      state: started
+      enabled: true
+
+#  - name: Change docker to use systemd cgroup driver 
+#    template:
+#      src: templates/daemon.j2
+#      dest: /etc/docker/daemon.json
+#      owner: root
+#      group: root
+#      force: true
+#      mode: 0644
+
+#- name: Change containerd to use systemd cgroup driver 
+#  template:
+#    src: templates/config.j2
+#    dest: /etc/containerd/config.toml
+#    owner: root
+#    group: root
+#    force: true
+#    mode: 0644
+#  notify:
+#    - Restart Docker
+#    - Restart Containerd
+
+  - name: Delete containerd config.toml
+    file:
+      state: absent
+      path: /etc/containerd/config.toml
+    notify:
+      - Restart Docker
+      - Restart Containerd
+  when: ansible_os_family == "RedHat"    

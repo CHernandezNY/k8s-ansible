@@ -1,8 +1,21 @@
 - name: Install NGINX on controlplane load balancer
-  apt:
-     name: nginx
-     state: present
-     update_cache: true
+  package:
+    name: nginx
+    state: present
+    update_cache: true
+
+- name: Install NGINX on controlplane load balancer
+  package:
+    name: nginx-mod-stream
+    state: present
+    update_cache: true
+  when: ansible_os_family == "RedHat"
+
+- name: Enable and start NGINX
+  service:
+    name: nginx
+    enabled: yes
+    state: started
 
 - name: Check if NGINX tcpconf.d directory exists.
   stat:
@@ -36,11 +49,3 @@
     - { template: kubernetes.j2, dest: /etc/nginx/tcpconf.d/kubernetes.conf }
   notify:
     - Restart NGINX
-
-
-- name: Enable and start NGINX
-  service:
-    name: nginx
-    enabled: yes
-    state: started
-

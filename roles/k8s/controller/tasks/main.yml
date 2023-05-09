@@ -1,51 +1,99 @@
-# Install Kubernetes Components 
+- name: Debian Based OS - Install Kubernetes Components
+  block: 
+  - name: Add an apt signing key for Kubernetes
+    apt_key:
+      url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+      state: present
+  
+  - name: Adding apt repository for Kubernetes
+    apt_repository:
+      repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+      state: present
+      filename: kubernetes.list
+  
+  - name: Install Kubelet
+    apt:
+      name: "kubelet={{k8s_version}}-00"
+      state: present
+      update_cache: true
+    register: apt_result
+    until: apt_result is success
+    retries: 10
+    delay: 15
+  
+  - name: Install Kubeadm
+    apt:
+      name: "kubeadm={{k8s_version}}-00"
+      state: present
+      update_cache: true
+    register: apt_result
+    until: apt_result is success
+    retries: 10
+    delay: 15
+  
+  - name: Install Kubectl
+    apt:
+      name: "kubectl={{k8s_version}}-00"
+      state: present
+      update_cache: true
+      allow_downgrade: yes
+    register: apt_result
+    until: apt_result is success
+    retries: 10
+    delay: 15
+  when: ansible_os_family == "Debian"
 
-- name: Add an apt signing key for Kubernetes
-  apt_key:
-    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
-    state: present
+- name: RedHat Based OS - Install Kubernetes Components
+  block:
+  - name: Add Kubernetes repository
+    ansible.builtin.yum_repository:
+      name: kubernetes
+      description: Kubernnetes
+      baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+      enabled: true
+      gpgcheck: true
+      gpgkey: https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg 
+      exclude: kubelet kubeadm kubectl
 
-- name: Adding apt repository for Kubernetes
-  apt_repository:
-    repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
-    state: present
-    filename: kubernetes.list
-
-- name: Install Kubelet
-  apt:
-    name: "kubelet={{k8s_version}}-00"
-    state: present
-    update_cache: true
-  register: apt_result
-  until: apt_result is success
-  retries: 10
-  delay: 15
-
-- name: Install Kubeadm
-  apt:
-    name: "kubeadm={{k8s_version}}-00"
-    state: present
-    update_cache: true
-  register: apt_result
-  until: apt_result is success
-  retries: 10
-  delay: 15
-
-- name: Install Kubectl
-  apt:
-    name: "kubectl={{k8s_version}}-00"
-    state: present
-    update_cache: true
-    allow_downgrade: yes
-  register: apt_result
-  until: apt_result is success
-  retries: 10
-  delay: 15
+  - name: Install Kubelet
+    yum:
+      name: "kubelet-{{k8s_version}}"
+      state: present
+      update_cache: true
+      disable_excludes: kubernetes
+    register: yum_result
+    until: yum_result is success
+    retries: 10
+    delay: 15
+  
+  - name: Install Kubeadm
+    yum:
+      name: "kubeadm-{{k8s_version}}"
+      state: present
+      update_cache: true
+      disable_excludes: kubernetes
+    register: yum_result
+    until: yum_result is success
+    retries: 10
+    delay: 15
+  
+  - name: Install Kubectl
+    yum:
+      name: "kubectl-{{k8s_version}}"
+      state: present
+      update_cache: true
+      allow_downgrade: yes
+      disable_excludes: kubernetes
+    register: apt_result
+    until: apt_result is success
+    retries: 10
+    delay: 15
+  when: ansible_os_family == "RedHat"
 
 - name: Start Kubelet
   service:
     name: kubelet
-    enabled: yes
+    enabled: true
     state: started
 
 - name: Check Cluster Status
@@ -80,8 +128,9 @@
       - { template: kubeadm-config.j2, dest: /etc/kubernetes/kubeadm/kubeadm-config.yml }
   
   - name: Initialize the Kubernetes cluster using kubeadm
-    shell: kubeadm init --config=/etc/kubernetes/kubeadm/kubeadm-config.yml --upload-certs
-  
+    shell: sudo kubeadm init --config=/etc/kubernetes/kubeadm/kubeadm-config.yml --upload-certs
+#    shell: sudo kubeadm init --config=/etc/kubernetes/kubeadm/kubeadm-config.yml --skip-phases=addon/kube-proxy --skip-phases=addon/coredns --upload-certs
+
   - name: create .kube directory
     ansible.builtin.file:
       path: "/home/{{ ansible_user }}/.kube"
@@ -101,6 +150,14 @@
       src: /home/{{ ansible_user }}/.kube/config
       dest: ~/.kube/config
       flat: yes
+
+#  - name: Pause for 45 seconds for controller to normalize
+#    ansible.builtin.pause:
+#      seconds: 45
+
+#  - name: Kubernetes Kubeadm addons
+#    shell: sudo kubeadm init phase addon all --control-plane-endpoint="192.168.1.41:6443" --pod-network-cidr=10.244.0.0/16
+    
 
   when: 
     - (controller_status.api_found is undefined ) 
@@ -133,7 +190,7 @@
   block: 
   - name: join cluster as controller
     shell: "sudo {{ hostvars[groups['controller'][0]].join_controller_command }}"
-   
+
   - name: create .kube directory
     ansible.builtin.file:
       path: "/home/{{ ansible_user }}/.kube"

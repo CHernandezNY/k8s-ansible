@@ -1,7 +1,7 @@
 stream {
     upstream kubernetes {
       {% for host in groups['controller'] %}
-        server {{ host }}:6443;
+        server {{ host }}:6443 max_fails=2 fail_timeout=15s;
       {% endfor %}
     }
 

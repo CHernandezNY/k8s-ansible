@@ -190,6 +190,10 @@
   block: 
   - name: join cluster as controller
     shell: "sudo {{ hostvars[groups['controller'][0]].join_controller_command }}"
+    register: apt_result
+    until: apt_result is success
+    retries: 10
+    delay: 15
 
   - name: create .kube directory
     ansible.builtin.file:

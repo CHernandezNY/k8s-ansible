@@ -4,20 +4,25 @@
     url: "{{ canal_url }}"
     dest: ~/canal.yml
     mode: 0664
+  when: 
+    - ansible_host == hostvars[groups['controller'][0]]['ansible_host'] | default(groups['controller'][0])
 
 - name: Update pod subnet
   replace:
     path: "~/canal.yml"
     regexp: "10.244.0.0/16"
     replace: "{{ podsubnet }}"
+  when: 
+    - ansible_host == hostvars[groups['controller'][0]]['ansible_host'] | default(groups['controller'][0])
 
 - name: Update canal interface
   replace:
     path: "~/canal.yml"
     regexp: 'canal_iface: ""'
     replace: 'canal_iface: "{{cni_iface}}"'
+  when: 
+    - ansible_host == hostvars[groups['controller'][0]]['ansible_host'] | default(groups['controller'][0])
 
-   
 - name: Install canal CNI
   k8s:
     kubeconfig: "/home/{{ ansible_user }}/.kube/config" 
@@ -37,3 +42,5 @@
   until: calico_service.resources | json_query('[*].status.conditions[?reason==`NewReplicaSetAvailable`][].status') | select ('match','True') | list | length == 1
   delay: 15
   retries: 10
+    when: 
+    - ansible_host == hostvars[groups['controller'][0]]['ansible_host'] | default(groups['controller'][0])

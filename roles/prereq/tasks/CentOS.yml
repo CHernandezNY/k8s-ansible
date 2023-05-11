@@ -1,7 +1,4 @@
-- name:  HELLO WORLD
-  debug:
-    msg: "Hello World"
-
+---
 - name: Disable swap
   become: true
   shell: |
@@ -35,6 +32,12 @@
       - kubernetes
       - pyyaml
       - openshift
+
+- name: Disable Firewall for lab
+  ansible.builtin.systemd:
+    name: firewalld
+    state: stopped
+    enabled: false
 
 #- name: Confiure Firewall Rules
 #  firewalld:
@@ -89,7 +92,7 @@
     name: net.bridge.bridge-nf-call-iptables
     value: 1
     state: present
-    sysctl_file: /etc/sysctl.d/k8s.conf
+    sysctl_file: /etc/sysctl.conf
     reload: true
 
 - name: Ensure iptables use port forwarding
@@ -97,7 +100,7 @@
     name: net.ipv4.ip_forward
     value: 1
     state: present
-    sysctl_file: /etc/sysctl.d/k8s.conf
+    sysctl_file: /etc/sysctl.conf
     reload: true
 
 - name: Ensure ip6tables use the nftables during filtering
@@ -105,7 +108,7 @@
     name: net.bridge.bridge-nf-call-ip6tables
     value: 1
     state: present
-    sysctl_file: /etc/sysctl.d/k8s.conf
+    sysctl_file: /etc/sysctl.conf
     reload: true
 
 - name: Disable SELinux

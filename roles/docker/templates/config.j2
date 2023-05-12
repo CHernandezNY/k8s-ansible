@@ -1,15 +1,7 @@
-#disabled_plugins = ["cri"]
+## CentOS Stream 9 Support
 
-[plugins]
-  [plugins."io.containerd.grpc.v1.cri"]
-    BinaryName = ""
-    CriuImagePath = ""
-    CriuPath = ""
-    CriuWorkPath = ""
-    IoGid = 0
-    IoUid = 0
-    NoNewKeyring = false
-    NoPivotRoot = false
-    Root = ""
-    ShimCgroup = ""
+version = 2
+[plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
+  runtime_type = "io.containerd.runc.v2"
+  [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
     SystemdCgroup = true

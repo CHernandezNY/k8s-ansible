@@ -50,6 +50,16 @@
     patterns: "*.yml"
   register: files_to_delete
 
+- name: Delete docker daemon config
+  file:
+    path: /etc/docker/daemon.json
+    state: absent
+
+- name: Delete containerd config
+  file:
+    path: /etc/containerd/config.toml
+    state: absent
+
 - name: Remove downloaded manifest
   file:
     path: "{{ item.path }}"

@@ -83,6 +83,17 @@
     retries: 10
     delay: 15
 
+  - name: Install docker-compose
+    yum:
+      name: docker-compose-plugin
+      state: present
+      update_cache: true
+      allow_downgrade: yes
+    register: yum_result
+    until: yum_result is success
+    retries: 10
+    delay: 15
+
   - name: Install docker-ce
     yum:
       name: docker-ce-3:{{ docker_version }}
@@ -100,38 +111,40 @@
       state: started
       enabled: true
 
-  - name: Start ContainerD Runtime
+  - name: Start Containerd Runtime
     service:
       name: containerd
       state: started
       enabled: true
 
-#  - name: Change docker to use systemd cgroup driver 
-#    template:
-#      src: templates/daemon.j2
-#      dest: /etc/docker/daemon.json
-#      owner: root
-#      group: root
-#      force: true
-#      mode: 0644
+## CentOS Stream 9 Suport
+  - name: Change docker to use systemd cgroup driver 
+    template:
+      src: templates/daemon.j2
+      dest: /etc/docker/daemon.json
+      owner: root
+      group: root
+      force: true
+      mode: 0644
 
-#- name: Change containerd to use systemd cgroup driver 
-#  template:
-#    src: templates/config.j2
-#    dest: /etc/containerd/config.toml
-#    owner: root
-#    group: root
-#    force: true
-#    mode: 0644
-#  notify:
-#    - Restart Docker
-#    - Restart Containerd
-
-  - name: Delete containerd config.toml
-    file:
-      state: absent
-      path: /etc/containerd/config.toml
+  - name: Change containerd to use systemd cgroup driver 
+    template:
+      src: templates/config.j2
+      dest: /etc/containerd/config.toml
+      owner: root
+      group: root
+      force: true
+      mode: 0644
     notify:
       - Restart Docker
       - Restart Containerd
+
+#  - name: Delete containerd config.toml
+#    file:
+#      state: absent
+#      path: /etc/containerd/config.toml
+#    notify:
+#      - Restart Docker
+#      - Restart Containerd
+
   when: ansible_os_family == "RedHat"    

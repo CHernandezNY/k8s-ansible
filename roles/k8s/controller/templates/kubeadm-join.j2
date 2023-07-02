@@ -1,0 +1,13 @@
+apiVersion: kubeadm.k8s.io/v1beta3
+kind: JoinConfiguration
+controlPlane:
+  certificateKey: "{{ hostvars[groups['controller'][0]].certificate_key_raw.stdout_lines[0] }}"
+nodeRegistration:
+  kubeletExtraArgs:
+    node-ip: "{{ ansible_facts[cni_iface]['ipv4']['address'] }}"
+discovery:
+  bootstrapToken:
+    apiServerEndpoint: "{{ apiserver_endpoint }}:6443"
+    token: "{{ hostvars[groups['controller'][0]].join_token.stdout_lines[0] }}"
+    caCertHashes:
+    - "sha256:{{ hostvars[groups['controller'][0]].ca_cert_hash.stdout_lines[0] }}"

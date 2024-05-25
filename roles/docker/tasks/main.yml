@@ -12,7 +12,8 @@
   
   - name: Install docker-ce
     apt:
-      name: docker-ce=5:{{ docker_version }}~3-0~{{ ansible_distribution | lower }}-{{ ansible_distribution_release }}
+      #name: docker-ce=5:{{ docker_version }}~3-0~{{ ansible_distribution | lower }}-{{ ansible_distribution_release }}
+      name: docker-ce=5:{{ docker_version }}*
       state: present
       update_cache: true
       allow_downgrade: yes
@@ -23,7 +24,8 @@
   
   - name: Install docker-ce-cli
     apt:
-      name: docker-ce-cli=5:{{ docker_version }}~3-0~{{ ansible_distribution | lower }}-{{ ansible_distribution_release }}
+      #name: docker-ce-cli=5:{{ docker_version }}~3-0~{{ ansible_distribution | lower }}-{{ ansible_distribution_release }}
+      name: docker-ce-cli=5:{{ docker_version }}*
       state: present
       update_cache: true
       install_recommends: no

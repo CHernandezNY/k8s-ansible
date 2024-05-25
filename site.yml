@@ -19,6 +19,8 @@
   become: true
   roles:
     - role: k8s/controller
+      vars:
+        k8s_version_split: "{{k8s_version.split('.')}}" 
 
 - hosts: controller
   become: true
@@ -29,3 +31,5 @@
   become: true
   roles:
     - role: k8s/worker
+      vars:
+        k8s_version_split: "{{k8s_version.split('.')}}" 

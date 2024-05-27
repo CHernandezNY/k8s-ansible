@@ -1,0 +1,79 @@
+- name: Debian Based OS = Docker Install 
+  block:
+  - name: Add an apt signing key for Docker
+    apt_key:
+      url: "https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg"
+      state: present
+  
+  - name: Add apt repository for stable version
+    apt_repository:
+      repo: "deb https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
+      state: present
+  
+  - name: Install containerd
+    apt:
+      name: containerd={{ containerd_version }}*
+      state: present
+      update_cache: true
+      allow_downgrade: yes
+    register: apt_result
+    until: apt_result is success
+    retries: 10
+    delay: 15
+
+  - name: Ensure /etc/containerd dir exists
+    file: 
+      path: "/etc/containerd"
+      state: directory
+
+  - name: Change containerd to use systemd cgroup driver 
+    template:
+      src: templates/config.j2
+      dest: /etc/containerd/config.toml
+      owner: root
+      group: root
+      force: true
+      mode: 0644
+    notify:
+      - Restart Containerd
+
+  when: ansible_os_family == "Debian"
+
+- name: RedHat Based OS = Containerd Install
+  block:
+  - name: Download and Add Docker repository
+    ansible.builtin.get_url:
+      url: "https://download.docker.com/linux/centos/docker-ce.repo"
+      dest: /etc/yum.repos.d/docker-ce.repo
+      mode: 0664
+
+  - name: Install containerd.io
+    yum:
+      name: containerd-{{ containerd_version }}
+      state: present
+      update_cache: true
+      allow_downgrade: yes
+    register: yum_result
+    until: yum_result is success
+    retries: 10
+    delay: 15
+
+  - name: Start Containerd Runtime
+    service:
+      name: containerd
+      state: started
+      enabled: true
+
+## CentOS Stream 9 Suport
+  - name: Change containerd to use systemd cgroup driver 
+    template:
+      src: templates/config.j2
+      dest: /etc/containerd/config.toml
+      owner: root
+      group: root
+      force: true
+      mode: 0644
+    notify:
+      - Restart Containerd
+
+  when: ansible_os_family == "RedHat"    

@@ -67,11 +67,11 @@
     delay: 15
   when: ansible_os_family == "RedHat"
 
-- name: Start Kubelet
+- name: Stop Kubelet
   service:
     name: kubelet
     enabled: true
-    state: started
+    state: stopped
 
 # Join worker nodes 
 - name: Join Worker Nodes

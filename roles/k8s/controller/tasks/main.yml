@@ -90,11 +90,11 @@
     delay: 15
   when: ansible_os_family == "RedHat"
 
-- name: Start Kubelet
+- name: Stop Kubelet
   service:
     name: kubelet
     enabled: true
-    state: started
+    state: stopped
 
 - name: Check Cluster Status
   kubernetes.core.k8s_info:

@@ -12,7 +12,6 @@
   
   - name: Install docker-ce
     apt:
-      #name: docker-ce=5:{{ docker_version }}~3-0~{{ ansible_distribution | lower }}-{{ ansible_distribution_release }}
       name: docker-ce=5:{{ docker_version }}*
       state: present
       update_cache: true
@@ -24,7 +23,6 @@
   
   - name: Install docker-ce-cli
     apt:
-      #name: docker-ce-cli=5:{{ docker_version }}~3-0~{{ ansible_distribution | lower }}-{{ ansible_distribution_release }}
       name: docker-ce-cli=5:{{ docker_version }}*
       state: present
       update_cache: true
@@ -45,14 +43,28 @@
     until: apt_result is success
     retries: 10
     delay: 15
-  
-  - name: Delete containerd config.toml
-    file:
-      state: absent
-      path: /etc/containerd/config.toml
+
+  - name: Change docker to use systemd cgroup driver 
+    template:
+      src: templates/daemon.j2
+      dest: /etc/docker/daemon.json
+      owner: root
+      group: root
+      force: true
+      mode: 0644
+
+  - name: Change containerd to use systemd cgroup driver 
+    template:
+      src: templates/config.j2
+      dest: /etc/containerd/config.toml
+      owner: root
+      group: root
+      force: true
+      mode: 0644
     notify:
       - Restart Docker
       - Restart Containerd
+
   when: ansible_os_family == "Debian"
 
 - name: RedHat Based OS = Docker Install
@@ -140,13 +152,5 @@
     notify:
       - Restart Docker
       - Restart Containerd
-
-#  - name: Delete containerd config.toml
-#    file:
-#      state: absent
-#      path: /etc/containerd/config.toml
-#    notify:
-#      - Restart Docker
-#      - Restart Containerd
 
   when: ansible_os_family == "RedHat"    

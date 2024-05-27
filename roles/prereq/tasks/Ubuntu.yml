@@ -53,6 +53,31 @@
     name: ip6tables
     path: /usr/sbin/ip6tables-legacy
 
+- name: Add the br_netfilter module
+  community.general.modprobe:
+    name: br_netfilter
+    state: present
+
+- name: Set net.bridge.bridge-nf-call-iptables on (1/2)
+  copy:
+    content: |
+      net.bridge.bridge-nf-call-ip6tables = 1
+      net.bridge.bridge-nf-call-iptables = 1
+    dest: /etc/sysctl.d/k8s.conf
+  register: netbridge
+
+- name: Set net.bridge.bridge-nf-call-iptables on (2/2)
+  command: sysctl --system
+  when: netbridge.changed
+
+- name: Set ip forwarding on in /proc and in the sysctl file and reload if necessary
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    sysctl_set: yes
+    state: present
+    reload: yes
+
 - name: Set the current MAC address for the default enthernet port.
   set_fact:
     node_mac_address: "{{ hostvars[inventory_hostname].ansible_default_ipv4.macaddress }}"

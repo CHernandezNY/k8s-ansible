@@ -33,7 +33,8 @@
     packages:
     - kubelet  
     - kubectl  
-    - kubeadm           
+    - kubeadm
+    - containerd           
     - containerd.io
     - docker-ce-cli     
     - docker-ce

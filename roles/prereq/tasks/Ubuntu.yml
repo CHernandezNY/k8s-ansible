@@ -31,6 +31,19 @@
     name: python3-pip
     state: present
 
+- name: Gather the package facts
+  ansible.builtin.package_facts:
+    manager: auto
+
+- name: Check and Set the Python3 version
+  ansible.builtin.set_fact:
+    python3Version: "{{ ansible_facts.packages['python3'] | map(attribute='version') | first | split('.') }}"
+
+- name: Fix externally managed error for Python3 PIP
+  ansible.builtin.file:
+    path: "/usr/lib/python3.{{ python3Version[1] }}/EXTERNALLY-MANAGED"
+    state: absent
+
 - name: Install kubernetes python package
   pip:
     name: 

@@ -1,0 +1,117 @@
+---
+- name: Disable swap
+  become: true
+  shell: |
+    sudo swapoff -a
+    sudo sed -i '/swap/d' /etc/fstab
+  when: ansible_swaptotal_mb > 0
+
+- name: Install NFS helper
+  package:
+    name: nfs-utils.x86_64
+    state: present
+
+- name: Install yum utils and device mapper dependencies  
+  package:
+    name: 
+      - yum-utils
+      - device-mapper-persistent-data
+      - curl
+      - lvm2
+    update_cache: yes
+    state: present
+
+- name: Install Python3 Pip
+  package:
+    name: python3-pip
+    state: present
+
+- name: Install kubernetes python package
+  pip:
+    name: 
+      - kubernetes
+      - pyyaml
+      - openshift
+
+- name: Disable Firewall for lab
+  ansible.builtin.systemd:
+    name: firewalld
+    state: stopped
+    enabled: false
+  register: stop_service
+  failed_when:
+    - stop_service.failed == true
+    - '"Could not find the requested service" not in stop_service.msg'
+
+- name: Add the Overlay module
+  community.general.modprobe:
+    name: overlay
+    state: present
+
+- name: Add the Bridge Netfilter module
+  community.general.modprobe:
+    name: br_netfilter
+    state: present
+
+- name: Ensure iptables use the nftables during filtering 
+  ansible.posix.sysctl:
+    name: net.bridge.bridge-nf-call-iptables
+    value: 1
+    state: present
+    sysctl_file: /etc/sysctl.conf
+    reload: true
+
+- name: Ensure iptables use port forwarding
+  ansible.posix.sysctl:
+    name: net.ipv4.ip_forward
+    value: 1
+    state: present
+    sysctl_file: /etc/sysctl.conf
+    reload: true
+
+- name: Ensure ip6tables use the nftables during filtering
+  ansible.posix.sysctl:
+    name: net.bridge.bridge-nf-call-ip6tables
+    value: 1
+    state: present
+    sysctl_file: /etc/sysctl.conf
+    reload: true
+
+- name: Disable SELinux
+  ansible.posix.selinux:
+    state: disabled
+
+- name: Set the current MAC address for the default enthernet port.
+  set_fact:
+    node_mac_address: "{{ hostvars[inventory_hostname].ansible_default_ipv4.macaddress }}"
+
+- name: Set variables based on eth0 MAC address.
+  set_fact:
+    node_hostname: "{{ mac_address_mapping[node_mac_address].name }}"
+    node_ip_address: "{{ mac_address_mapping[node_mac_address].ip }}"
+
+- name: Disable DNS Resolve in NetworkManager
+  ini_file:
+    path: /etc/NetworkManager/NetworkManager.conf
+    state: present
+    no_extra_spaces: yes
+    section: main
+    option: dns
+    value: none
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+
+- name: Set up networking-related files.
+  template:
+    src: "templates/{{ item.template }}"
+    dest: "{{ item.dest }}"
+    mode: 0644
+  with_items:
+    - { template: hostname.j2, dest: /etc/hostname }
+    - { template: hosts.j2, dest: /etc/hosts }
+    - { template: resolv.conf.j2, dest: /etc/resolv.conf }
+  notify:
+    - update hostname
+    - reboot

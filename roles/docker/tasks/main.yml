@@ -75,12 +75,13 @@
       dest: /etc/yum.repos.d/docker-ce.repo
       mode: 0664
 
-  - name: Install containerd.io
+  - name: Install docker-ce
     yum:
-      name: containerd.io-{{ containerd_version }}
+      name: docker-ce-3:{{ docker_version }}
       state: present
       update_cache: true
       allow_downgrade: yes
+      allowerasing: true
     register: yum_result
     until: yum_result is success
     retries: 10
@@ -92,6 +93,7 @@
       state: present
       update_cache: true
       allow_downgrade: yes
+      allowerasing: true
     register: yum_result
     until: yum_result is success
     retries: 10
@@ -103,17 +105,19 @@
       state: present
       update_cache: true
       allow_downgrade: yes
+      allowerasing: true
     register: yum_result
     until: yum_result is success
     retries: 10
     delay: 15
 
-  - name: Install docker-ce
+  - name: Install containerd.io
     yum:
-      name: docker-ce-3:{{ docker_version }}
+      name: containerd.io-{{ containerd_version }}
       state: present
       update_cache: true
       allow_downgrade: yes
+      allowerasing: true
     register: yum_result
     until: yum_result is success
     retries: 10

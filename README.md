@@ -7,7 +7,9 @@ Build a Kubernetes cluster using Ansible with kubeadmin. The goal is easily inst
 - [ ] Debian
 - [X] Ubuntu
 - [X] Raspbian
-- [X] CentOS
+- [X] CentOS Stream 8+
+- [X] RHEL 8+
+- [X] Rocky Linux 8+
 
 on processor architecture:
 
@@ -71,3 +73,7 @@ ansible-playbook reset.yml -i inventory/hosts.ini
 ```
 
 >You should also reboot these nodes 
+
+## Thanks  
+
+Thanks to Angus for testing on serveral OS's and helping identify bugs!

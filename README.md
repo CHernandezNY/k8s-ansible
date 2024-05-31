@@ -4,7 +4,7 @@
 
 Build a Kubernetes cluster using Ansible with kubeadmin. The goal is easily install a Kubernetes cluster on machines running:
 
-- [ ] Debian
+- [X] Debian
 - [X] Ubuntu
 - [X] Raspbian
 - [X] CentOS Stream 8+

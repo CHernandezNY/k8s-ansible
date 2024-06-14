@@ -19,9 +19,9 @@ on processor architecture:
 
 ## System requirements
 
-Deployment environment must have Ansible 2.16.0+
-All nodes should have Python3 installed
-controllers and workers must have passwordless SSH access
+Deployment environment must have Ansible 2.16.0+  
+All nodes should have Python3 installed  
+controllers and workers must have passwordless SSH access  
 
 ## Usage
 

@@ -44,7 +44,7 @@ Second, edit `inventory/hosts.ini` to match the system information gathered abov
 [balancer]
 192.168.1.13
 
-[k3s_cluster:children]
+[k8s_cluster:children]
 controller
 worker
 ```

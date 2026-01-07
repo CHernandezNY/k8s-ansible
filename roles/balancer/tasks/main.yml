@@ -1,10 +1,36 @@
+- name: Debian Based OS - Install NGINX 
+  block: 
+  - name: Debian Add an apt signing key for NGINX Signing Key
+    apt_key:
+      url: "https://nginx.org/keys/nginx_signing.key"
+      state: present
+
+  - name: Debian Adding apt repository for NGINX
+    apt_repository:
+      repo: "deb https://nginx.org/packages/{{ ansible_distribution | lower }} {{ ansible_lsb.codename }} nginx"
+      state: present
+      filename: kubernetes.list
+  when: ansible_os_family == "Debian"
+
+- name: RedHat Based OS - Install NGINX 
+  block:
+  - name: RHEL Add NGINX repository
+    ansible.builtin.yum_repository:
+      name: nginx stable repo
+      description: NGINX
+      baseurl: https://nginx.org/packages/rhel/$releasever/$basearch/
+      enabled: true
+      gpgcheck: true
+      gpgkey: https://nginx.org/keys/nginx_signing.key
+  when: ansible_os_family == "RedHat"
+
 - name: Install NGINX on controlplane load balancer
   package:
     name: nginx
     state: present
     update_cache: true
 
-- name: Install NGINX on controlplane load balancer
+- name: Install NGINX Mod Stream on controlplane load balancer
   package:
     name: nginx-mod-stream
     state: present
@@ -20,19 +46,19 @@
 - name: Check if NGINX tcpconf.d directory exists.
   stat:
     path: /etc/nginx/tcpconf.d/
-  register: nginx_folder
+  register: my_folder
 
 - name: Echo if directory already existed
   debug:
     msg: "The tcpconf.d directory already existed"
-  when: nginx_folder.stat.exists
+  when: my_folder.stat.exists
 
 - name: "Create NGINX tcpconf.d directory if does not exists"
   file:
     path: /etc/nginx/tcpconf.d/
     state: directory
     mode: 0755
-  when: nginx_folder.stat.exists == false
+  when: my_folder.stat.exists == false
 
 - name: Add a include line to NGINX conf for tcp stream directory
   lineinfile:
@@ -48,4 +74,4 @@
   with_items:
     - { template: kubernetes.j2, dest: /etc/nginx/tcpconf.d/kubernetes.conf }
   notify:
-    - Restart NGINX
+      - Restart NGINX

@@ -19,13 +19,13 @@ on processor architecture:
 
 ## System requirements
 
-Deployment environment must have Ansible 2.16.0+  
+Deployment environment must have Ansible 2.19.0+  
 All nodes should have Python3 installed  
 All nodes must have passwordless SSH access  
 
 ## Usage
 
-First create a new directory based on the `sample` directory within the `inventory` directory:
+First create a new directory based on the `sample` folder within the `inventory` directory:
 
 ```bash
 cp -R inventory/sample inventory/
@@ -53,7 +53,7 @@ If multiple hosts are in the controller group, the playbook will automatically s
 
 This cluster was designed to use an external NGINX load balancer for the Control Plane API.  For single controller deployments the balancer IP can be left blank.
 
-This requires at least k8s version '1.24.1' however the version is configurable by using the 'k8s_version' variable.
+This requires at least k8s version '1.32.11' however the version is configurable by using the 'k8s_version' variable.
 
 If needed, you can also edit 'inventory/group_vars/all.yml' to match your environment.
 
@@ -73,7 +73,7 @@ After deployment control plane will be accessible via virtual ip-address which i
 ansible-playbook reset.yml -i inventory/hosts.ini
 ```
 
->You should also reboot these nodes 
+>You should also reboot these nodes
 
 ## Thanks  
 

@@ -8,7 +8,7 @@
 
 - name: Install NFS helper
   package:
-    name: nfs-utils
+    name: nfs-utils.x86_64
     state: present
 
 - name: Install yum utils and device mapper dependencies  
@@ -32,6 +32,7 @@
       - kubernetes
       - pyyaml
       - openshift
+      - jmespath
 
 - name: Disable Firewall for lab
   ansible.builtin.systemd:
@@ -42,44 +43,6 @@
   failed_when:
     - stop_service.failed == true
     - '"Could not find the requested service" not in stop_service.msg'
-
-#- name: Confiure Firewall Rules
-#  firewalld:
-#    port: "{{ item }}/tcp"
-#    state: enabled
-#    immediate: true
-#    permanent: true
-#  with_items:
-#    - 6443
-#    - 2379-2380
-#    - 10250
-#    - 10251
-#    - 10252
-#    - 10255
-#    - 10257
-#    - 10259
-#    - 9345
-#    - 30000-32767
-#
-#- name: Rich Rule Local Network
-#  ansible.posix.firewalld:
-#    rich_rule: rule family=ipv4 source address=192.168.1.0/24 accept
-#    permanent: true
-#    immediate: true
-#    state: enabled
-#
-#- name: Rich Rule Docker Container
-#  ansible.posix.firewalld:
-#    rich_rule: rule family=ipv4 source address=172.17.0.0/16 accept
-#    permanent: true
-#    immediate: true
-#    state: enabled
-#
-#- name: Firewall Enable Masquearade
-#  firewalld:
-#    masquerade: true
-#    state: enabled
-#    permanent: true
 
 - name: Add the Overlay module
   community.general.modprobe:
@@ -119,14 +82,17 @@
   ansible.posix.selinux:
     state: disabled
 
-- name: Set the current MAC address for the default enthernet port.
-  set_fact:
-    node_mac_address: "{{ hostvars[inventory_hostname].ansible_default_ipv4.macaddress }}"
+- name: Display the current IP address for the default enthernet port.
+  debug:
+    msg: "{{ hostvars[inventory_hostname].ansible_default_ipv4.address }}"
 
-- name: Set variables based on eth0 MAC address.
+- name: Get the current IP address for the default enthernet port.
   set_fact:
-    node_hostname: "{{ mac_address_mapping[node_mac_address].name }}"
-    node_ip_address: "{{ mac_address_mapping[node_mac_address].ip }}"
+    node_ip_address: "{{ hostvars[inventory_hostname].ansible_default_ipv4.address }}"
+
+- name: Set variables based on eth0 IP address.
+  set_fact:
+    node_hostname: "{{ ip_address_mapping[node_ip_address].name }}"
 
 - name: Disable DNS Resolve in NetworkManager
   ini_file:

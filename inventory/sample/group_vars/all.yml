@@ -39,39 +39,24 @@ dns_nameservers:
 nfs_server: "192.168.1.10"
 nfs_path: "/srv/nfs/kubedata"
 
-# DHCP address of unitilized bare-metal hosts
-new_hosts:
-  - 192.168.1.11
-  - 192.168.1.12
-  - 192.168.1.13
-  - 192.168.1.14
-  - 192.168.1.15
-  - 192.168.1.16
-  - 192.168.1.17
-
 # Mapping of hardware MAC addresses should be configured with specific IPs and Hostnames
-mac_address_mapping:
-  "00:01:ff:33:d6:18":
+ip_address_mapping:
+  "192.168.1.11":
     name: ctrl-01.example.local
-    ip: "192.168.1.11"
-  "00:01:ff:1a:e7:78":
+  "192.168.1.12":
     name: ctrl-02.example.local
-    ip: "192.168.1.12"
-  "00:01:ff:e0:9b:34":
+  "192.168.1.15":
     name: ctrl-03.example.local
-    ip: "192.168.1.13"
-  "00:01:ff:ca:72:3b":
+  "192.168.1.16":
+    name: ctrl-04.example.local
+  "192.168.1.13":
     name: wrkr-01.example.local
-    ip: "192.168.1.14"
-  "00:01:ff:86:5c:c4":
+  "192.168.1.17":
     name: wrkr-02.example.local
-    ip: "192.168.1.15"
-  "00:01:ff:58:51:c2":
-    name: wrkr-03.example.local
-    ip: "192.168.1.16"
-  "00:01:ff:78:78:d5":
-    name: nginx-lb.example.local
-    ip: "192.168.1.17"
+  "192.168.1.14":
+    name: ldbl-01.example.local
+  "192.168.1.18":
+    name: ldbl-02.example.local
 
 # CNI Manifest URLs
 # Calico Manifest url 

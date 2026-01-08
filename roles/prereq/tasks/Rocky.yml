@@ -82,14 +82,17 @@
   ansible.posix.selinux:
     state: disabled
 
-- name: Set the current MAC address for the default enthernet port.
-  set_fact:
-    node_mac_address: "{{ hostvars[inventory_hostname].ansible_default_ipv4.macaddress }}"
+- name: Display the current IP address for the default enthernet port.
+  debug:
+    msg: "{{ hostvars[inventory_hostname].ansible_default_ipv4.address }}"
 
-- name: Set variables based on eth0 MAC address.
+- name: Get the current IP address for the default enthernet port.
   set_fact:
-    node_hostname: "{{ mac_address_mapping[node_mac_address].name }}"
-    node_ip_address: "{{ mac_address_mapping[node_mac_address].ip }}"
+    node_ip_address: "{{ hostvars[inventory_hostname].ansible_default_ipv4.address }}"
+
+- name: Set variables based on eth0 IP address.
+  set_fact:
+    node_hostname: "{{ ip_address_mapping[node_ip_address].name }}"
 
 - name: Disable DNS Resolve in NetworkManager
   ini_file:

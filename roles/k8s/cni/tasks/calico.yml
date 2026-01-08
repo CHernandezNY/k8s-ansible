@@ -52,7 +52,7 @@
     name: calico-kube-controllers
     namespace: calico-system
   register: calico_service
-  until: calico_service.resources | json_query('[*].status.conditions[?reason==`NewReplicaSetAvailable`][].status') | select ('match','True') | list | length == 1
+  until: calico_service.resources | json_query("[*].status.conditions[?reason=='NewReplicaSetAvailable'][].status") | select ('match','True') | list | length == 1
   delay: 15
   retries: 10
   when: 

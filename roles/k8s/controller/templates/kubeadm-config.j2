@@ -1,4 +1,4 @@
-apiVersion: kubeadm.k8s.io/v1beta3
+apiVersion: kubeadm.k8s.io/v1beta4
 kind: ClusterConfiguration
 kubernetesVersion: stable
 controlPlaneEndpoint: "{{ apiserver_endpoint }}:6443"
@@ -11,8 +11,8 @@ apiServer:
   - "{{ host }}"
 {% endfor %}
 ---
-apiVersion: kubeadm.k8s.io/v1beta3
+apiVersion: kubeadm.k8s.io/v1beta4
 kind: InitConfiguration
-nodeRegistration:
-  kubeletExtraArgs:
-    node-ip: "{{ ansible_facts[cni_iface]['ipv4']['address'] }}"
+localAPIEndpoint:
+  advertiseAddress: "{{ ansible_facts[cni_iface]['ipv4']['address'] }}"
+  bindPort: 6443

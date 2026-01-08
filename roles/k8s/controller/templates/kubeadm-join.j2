@@ -2,9 +2,9 @@ apiVersion: kubeadm.k8s.io/v1beta3
 kind: JoinConfiguration
 controlPlane:
   certificateKey: "{{ hostvars[groups['controller'][0]].certificate_key_raw.stdout_lines[0] }}"
-nodeRegistration:
-  kubeletExtraArgs:
-    node-ip: "{{ ansible_facts[cni_iface]['ipv4']['address'] }}"
+localAPIEndpoint:
+  advertiseAddress: "{{ ansible_facts[cni_iface]['ipv4']['address'] }}"
+  bindPort: 6443
 discovery:
   bootstrapToken:
     apiServerEndpoint: "{{ apiserver_endpoint }}:6443"

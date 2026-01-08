@@ -130,7 +130,7 @@
 
   - name: Start Containerd Runtime
     service:
-      name: containerd.io
+      name: containerd
       state: started
       enabled: true
 

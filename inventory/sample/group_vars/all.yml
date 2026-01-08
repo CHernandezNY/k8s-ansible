@@ -1,9 +1,11 @@
 ---
-k8s_version: 1.26.1
+k8s_version: 1.32.11
 
-docker_version: 20.10.24
+docker_version: 27.5.1
 
-containerd_version: 1.6.19
+containerdio_version: 1.7.28
+
+containerd_version: 1.7.28
 
 # this is the user that has ssh access to these machines
 ansible_user: ansibleuser
@@ -13,7 +15,7 @@ systemd_dir: /etc/systemd/system
 system_timezone: "Your/Timezone"
 
 # Set CNI plugin choice flannel, calico or canal
-cni_plugin: "flannel"
+cni_plugin: "calico"
 
 # interface which will be used for cni binding
 cni_iface: "eth0"

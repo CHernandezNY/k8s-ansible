@@ -5,5 +5,8 @@
 
 - name: Restart Containerd
   service:
-    name: containerd
+    name: containerd.io
     state: restarted
+
+- name: reboot
+  reboot:

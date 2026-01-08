@@ -35,7 +35,7 @@
   
   - name: Install containerd.io
     apt:
-      name: containerd.io={{ containerd_version }}-1
+      name: containerd.io={{ containerdio_version }}*
       state: present
       update_cache: true
       allow_downgrade: yes
@@ -44,15 +44,15 @@
     retries: 10
     delay: 15
 
-  - name: Change docker to use systemd cgroup driver 
-    template:
-      src: templates/daemon.j2
-      dest: /etc/docker/daemon.json
-      owner: root
-      group: root
-      force: true
-      mode: 0644
-
+#  - name: Change docker to use systemd cgroup driver 
+#    template:
+#      src: templates/daemon.j2
+#      dest: /etc/docker/daemon.json
+#      owner: root
+#      group: root
+#      force: true
+#      mode: 0644
+#
   - name: Change containerd to use systemd cgroup driver 
     template:
       src: templates/config.j2
@@ -62,8 +62,7 @@
       force: true
       mode: 0644
     notify:
-      - Restart Docker
-      - Restart Containerd
+      - reboot
 
   when: ansible_os_family == "Debian"
 
@@ -113,7 +112,7 @@
 
   - name: Install containerd.io
     yum:
-      name: containerd.io-{{ containerd_version }}
+      name: containerd.io-{{ containerdio_version }}
       state: present
       update_cache: true
       allow_downgrade: yes
@@ -131,7 +130,7 @@
 
   - name: Start Containerd Runtime
     service:
-      name: containerd
+      name: containerd.io
       state: started
       enabled: true
 

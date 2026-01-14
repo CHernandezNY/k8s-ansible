@@ -224,3 +224,12 @@
   when: 
     - (controller_status.api_found is undefined ) 
     - not ansible_host == hostvars[groups['controller'][0]]['ansible_host'] | default(groups['controller'][0])
+
+- name: Gather worker nodes
+  delegate_to: localhost
+  become: false
+  kubernetes.core.k8s_info:
+    kubeconfig: "/home/{{ ansible_user }}/.kube/config" 
+    kind: node
+    label_selectors: "!node-role.kubernetes.io/control-plane"
+  register: worker_nodes

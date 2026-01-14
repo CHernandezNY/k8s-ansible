@@ -67,32 +67,37 @@
     delay: 15
   when: ansible_os_family == "RedHat"
 
-- name: Stop Kubelet
-  service:
-    name: kubelet
-    enabled: true
-    state: stopped
+# Join worker nodes 
+- name: Join Worker Nodes
+  block: 
 
-- name: Check if kubeadm directory exists.
-  stat:
-    path: /etc/kubernetes/kubeadm
-  register: kdm_folder
+  - name: Stop Kubelet
+    service:
+      name: kubelet
+      enabled: true
+      state: stopped
 
-- name: "Create kubeadm directory if not exists"
-  file:
-    path: /etc/kubernetes/kubeadm/
-    state: directory
-    mode: 0755
-  when: kdm_folder.stat.exists == false
-
-- name: Set up the kubeadm config file.
-  template:
-    src: "templates/{{ item.template }}"
-    dest: "{{ item.dest }}"
-    mode: 0644
-  with_items:
-    - { template: kubeadm-join.j2, dest: /etc/kubernetes/kubeadm/kubeadm-config.yml }
-
-- name: join cluster as worker
-  shell: "sudo kubeadm join --config=/etc/kubernetes/kubeadm/kubeadm-config.yml"
+  - name: Check if kubeadm directory exists.
+    stat:
+      path: /etc/kubernetes/kubeadm
+    register: kdm_folder
+  
+  - name: "Create kubeadm directory if not exists"
+    file:
+      path: /etc/kubernetes/kubeadm/
+      state: directory
+      mode: 0755
+    when: kdm_folder.stat.exists == false
+  
+  - name: Set up the kubeadm config file.
+    template:
+      src: "templates/{{ item.template }}"
+      dest: "{{ item.dest }}"
+      mode: 0644
+    with_items:
+      - { template: kubeadm-join.j2, dest: /etc/kubernetes/kubeadm/kubeadm-config.yml }
+  
+  - name: join cluster as worker
+    shell: "sudo kubeadm join --config=/etc/kubernetes/kubeadm/kubeadm-config.yml"
+  when: ansible_facts.fqdn not in hostvars[groups['controller'][0]].worker_nodes | json_query('resources[*].metadata.name')
     

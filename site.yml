@@ -23,8 +23,10 @@
       vars:
         k8s_version_split: "{{k8s_version.split('.')}}" 
 
-- hosts: controller
-  become: true
+- hosts: localhost
+  connection: local
+  gather_facts: false
+  become: false
   roles:
     - role: k8s/cni
 
